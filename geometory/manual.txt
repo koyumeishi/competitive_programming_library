@@ -1,0 +1,20 @@
+geometory_basics.cpp
+	xyクラス
+	点間距離
+	線間距離
+	点線間距離
+	内積
+	外積
+	ソート用関数
+	counter clockcwise
+
+convex_hull.cpp
+	convex_hull
+	最遠点対(キャリパー法)
+
+smallest_enclosing_disk_O(logN).cpp
+	Welzl's algorithm
+	
+smallest_enclosing_disk_O(NlogN).cpp
+	random algorithm
+	
