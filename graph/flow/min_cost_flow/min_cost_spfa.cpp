@@ -4,6 +4,120 @@
 #include <deque>
 
 using namespace std;
+
+//class template(cost)
+//using spfa
+//verified 2015/5/21 https://icpc.kattis.com/problems/catering
+template<class T>
+class Min_Cost_Flow{
+public:
+
+	struct edge{
+		int to;
+		int cap;
+		T cost;
+		int rev;
+	};
+
+	const T INF;
+	vector<vector<edge>> G;
+
+	Min_Cost_Flow(int n, T inf) : G(n), INF(inf){
+
+	}
+
+	void add_edge(int from, int to, int cap, T cost){
+		G[from].push_back((edge){to, cap, cost, (int)G[to].size()});
+		G[to].push_back((edge){from, 0, -cost, (int)G[from].size()-1});
+	}
+
+
+	//min cost : s->t (flow:f)
+	T min_cost_flow(int s, int t, int f){
+		const int N = G.size();
+		T cost = 0;
+		vector<int> prev_v(N,-1);
+		vector<int> prev_e(N,-1);
+		vector<T> potantial(N, 0);
+
+		
+		while(f>0){
+			//min distance(cost based) search with SPFA
+			vector<T> dist(N, INF);
+			
+			vector<int> cnt(dist.size(), 0);
+			dist[s] = 0;
+			prev_v[s] = s;
+
+			queue<int> Q;
+			auto my_push = [&](int node){
+				Q.push(node);
+				cnt[node]++;
+			};
+			auto my_pop = [&]() -> int{
+				int ret = Q.front();
+				cnt[ret]--;
+				Q.pop();
+				return ret;
+			};
+			my_push(s);
+			while(!Q.empty()){
+				int pos = my_pop();
+				for(int i=0; i<G[pos].size(); i++){
+					edge& E = G[pos][i];
+					T new_dist = dist[pos] + E.cost + potantial[E.to] - potantial[pos];
+					if(dist[E.to] > new_dist && E.cap > 0){
+						dist[E.to] = new_dist;
+						prev_v[ E.to ] = pos;
+						prev_e[ E.to ] = i;
+
+						if(cnt[ E.to ] == 0){
+							my_push( E.to );
+						}
+					}
+				}
+			}
+			for(int i=0; i<N; i++){
+				dist[i] = potantial[i] + dist[i];
+			}
+
+			//cannot achieved to "t" return -1
+			if(dist[t]>=INF) return -1;
+
+			//add cost of s->t with flow=d
+			int pos=t;
+			int d=f;
+			while(pos!=s){
+				int i=prev_v[pos];
+				int j=prev_e[pos];
+				pos = i;
+				d = min(d, G[i][j].cap);
+			}
+			
+			pos = t;
+			//cout << t ;
+			while(pos!=s){
+				int i=prev_v[pos];
+				int j=prev_e[pos];
+				G[i][j].cap -= d;
+				G[ G[i][j].to ][ G[i][j].rev ].cap += d;
+				//cost += G[i][j].cost * d;
+				pos = i;
+				//cout << " <- " << pos;
+			}
+			//cout << endl;
+			cost += d * dist[t];
+			f -= d;
+
+			//f==0 then end
+		}
+		return cost;
+	}
+};
+
+
+
+
 #define INF 1e9
 
 typedef struct{
@@ -201,7 +315,6 @@ int min_cost_flow(vector<vector<edge> > &G, int s, int t, int f){
 	}
 	return cost;
 }
-
 
 
 

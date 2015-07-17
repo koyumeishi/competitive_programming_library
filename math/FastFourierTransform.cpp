@@ -10,6 +10,9 @@
 
 using namespace std;
 
+// http://d.hatena.ne.jp/nurs/20130617/1371483633
+
+
 template<typename T = double>
 class Fast_Fourier_Transform{
 	// return the vector of F[t] or f[x] where
@@ -114,7 +117,7 @@ public:
 	}
 
 	// vector<double> C | C[i] = ΣA[i]B[j]
-	static vector<complex<T>> combolution(vector<T> &A, vector<T> &B){
+	static vector<complex<T>> convolution(vector<T> &A, vector<T> &B){
 		reverse(B.begin(), B.end());
 
 		int n = max(A.size(), B.size());
@@ -143,7 +146,7 @@ int main(){
 		cout << endl;
 	};
 
-	auto C = Fast_Fourier_Transform<>::round(Fast_Fourier_Transform<>::combolution(A,B));
+	auto C = Fast_Fourier_Transform<>::round(Fast_Fourier_Transform<>::convolution(A,B));
 
 	for(int i=0; i<C.size(); i++){
 		cout << C[i] << " ";

@@ -1,5 +1,5 @@
 
-long long mypow(long long x, long long y, long long MOD){
+long long mod_pow(long long x, long long y, long long MOD){	//x^y mod MOD
 	long long ret=1LL;
 	while(y>0LL){
 		if(y&1LL) ret = (ret * x) % MOD;

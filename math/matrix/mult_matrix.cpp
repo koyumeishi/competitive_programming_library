@@ -28,7 +28,7 @@ vector< vector<T> > multmat(const vector<vector<T> > &A, const vector<vector<T>>
 
 //A[n*n]^k 
 template<class T>
-vector< vector<T> > mat_pow(vector<vector<T> > A, int k){
+vector< vector<T> > mat_pow(vector<vector<T> > A, long long k){
 	int n = A.size();
 	vector<vector<T> > ret(n, vector<T>(n, 0) );
 	for(int i=0; i<n; i++){

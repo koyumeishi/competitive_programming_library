@@ -20,7 +20,7 @@ class SegmentTree{
 	Value DEFAULT_VALUE;
 
 	//evaluation function
-	Value default_evaluate(Value a, Value b){
+	static Value default_evaluate(Value a, Value b){
 		return max(a,b);
 	}
 

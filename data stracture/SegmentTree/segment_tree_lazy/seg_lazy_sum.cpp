@@ -1,5 +1,6 @@
 //range sum
 //not verified
+
 template<class T=int>
 class Segment_Tree_Lazy{
 	static const T default_value = 0;

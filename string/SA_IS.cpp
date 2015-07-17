@@ -13,7 +13,7 @@ using namespace std;
 
 //Suffix Array SA-IS algorithm
 //O(N), using too many memory
-//verified 2015/03/24 03:30 at
+//verified 2015/05/11 20:03 at
 // https://www.hackerrank.com/contests/w7/challenges/string-function-calculation
 // http://codeforces.com/contest/529/problem/A
 
@@ -30,14 +30,122 @@ class SA_IS{
 		}
 		return bucket_size;
 	}
-public:
-	static const int L = 0;
-	static const int S = 1;
-	
-	string my_s;
-	vector<int> sa;
-	vector<int> lcp;
-	
+	class bucket_set{
+		vector<int> container;
+		vector<vector<int>::iterator> bucket;
+		vector<int> front;
+		vector<int> back;
+
+		vector<bool> fixed;
+		vector<vector<bool>::iterator> bucket_fixed;
+
+		vector<bool> used;
+
+		const vector<int>& str;
+		const vector<int>& bucket_size;
+		const vector<int>& LS;
+
+		void put_L(){
+			for(int i=0; i<bucket_size.size(); i++){
+				for(int j=0; j<bucket_size[i]; j++){
+					if( bucket[i][j] - 1 < 0 ) continue;
+					if( LS[ bucket[i][j]-1 ] == L ){
+						if(used[bucket[i][j]-1]) continue;
+						used[ bucket[i][j]-1 ] = true;
+						
+						int c = str[ bucket[i][j]-1 ];
+						bucket[c][ front[c] ] = bucket[i][j]-1;
+						bucket_fixed[c][ front[c] ] = true;
+						front[c]++;
+					}
+				}
+				back[i] = bucket_size[i] - 1;
+			}
+		}
+		void put_S(){
+			for(int i=bucket_size.size()-1; i>=0; i--){
+				for(int j=bucket_size[i]-1; j>=0; j--){
+					if( bucket[i][j] - 1 < 0 ) continue;
+					if( LS[ bucket[i][j]-1 ] == S ){
+						if(used[bucket[i][j]-1]) continue;
+						used[ bucket[i][j]-1 ] = true;
+						
+						int c = str[ bucket[i][j]-1 ];
+						bucket[c][ back[c] ] = bucket[i][j]-1;
+						bucket_fixed[c][ back[c] ] = true;
+						back[c]--;
+					}
+				}
+			}
+		}
+
+		void init(){
+			int sum = 0;
+			for(int i=0; i<bucket_size.size(); i++){
+				bucket[i] = container.begin() + sum;
+				bucket_fixed[i] = fixed.begin() +sum;
+				front[i] = 0;
+				back[i]  = bucket_size[i] - 1;
+				sum += bucket_size[i];
+			}
+		}
+
+	public:
+		bucket_set(const vector<int>& str_, const vector<int>& bucket_size_, const vector<int>& LS_) :
+			container(str_.size(), -1),
+			bucket(bucket_size_.size()),
+			front(bucket_size_.size()),
+			back(bucket_size_.size()),
+			fixed(str_.size(), false),
+			bucket_fixed(bucket_size_.size()),
+			used(str_.size(), false),
+			str(str_),
+			bucket_size(bucket_size_),
+			LS(LS_)	{
+			init();
+		}
+
+		void put_initial_LMS(const vector<int>& LMS_pos){
+			for(int i=0; i<LMS_pos.size()-1; i++){
+				int c = str[LMS_pos[i]];
+				bucket[c][back[c]] = LMS_pos[i];
+				back[c]--;
+			}
+		}
+
+		void put_ordered_LMS(const vector<int>& LMS_pos){
+			for(int i=LMS_pos.size()-2; i>=0; i--){
+				int c = str[LMS_pos[i]];
+				bucket[c][back[c]] = LMS_pos[i];
+				back[c]--;
+			}
+		}
+
+		void put(){
+			put_L();
+			for(int i=0; i<str.size(); i++) if(fixed[i] == false) container[i] = -1;
+			put_S();
+			container[0] = str.size()-1;
+		}
+
+		vector<int> get_LMS_substring_order(const vector<int>& LMS){
+			vector<int> ret;
+			for(int i=0; i<str.size(); i++){
+				if(LS[container[i]] != S) continue;
+				if(container[i] > 0 && LS[container[i]-1] == L) ret.push_back(container[i]);
+			}
+			return ret;
+		}
+
+		vector<int> get_result(){
+			return container;
+		}
+	};
+
+	size_t get_hash(const void* ptr, const size_t size){
+		return std::_Hash_impl::hash(ptr, size);
+	}
+/*
 	struct substring{
 		int pos;
 		int size;
@@ -51,16 +159,6 @@ public:
 			this->str = str;
 			this->ls = ls;
 		}
-		bool operator<(const substring& x) const {
-			for(int i=0; i<min(this->size, x.size); i++){
-				if(this->str[i] != x.str[i]){
-					return this->str[i] < x.str[i];
-				}else if(this->ls[i] != x.ls[i]){
-					return this->ls[i] == SA_IS::L;
-				}
-			}
-			return this->size < x.size;
-		}
 		bool operator==(const substring& x) const {
 			for(int i=0; i<min(this->size, x.size); i++){
 				if(this->str[i] != x.str[i]){
@@ -71,40 +169,22 @@ public:
 			}
 			return this->size == x.size;
 		}
-		substring operator=(const substring& x){
-			this->pos = x.pos;
-			this->size = x.size;
-			this->str = x.str;
-			this->ls = x.ls;
-			return *this;
-		}
 	};
+*/
+
+public:
+	static const int L = 0;
+	static const int S = 1;
+	
+	string my_s;
+	vector<int> sa;
+	vector<int> lcp;
+
 	
 	vector<int> rec(vector<int>& v){
 		v.push_back(-1);
 		vector<int> bucket_size = compress(v);
 
-		//bucket
-		vector<int> ret(v.size(), -1);
-		vector<vector<int>::iterator> bucket(bucket_size.size());
-		vector<bool> fixed(v.size(), false);
-		vector<vector<bool>::iterator> bucket_fixed(bucket_size.size());
-		vector<int> bucket_front(bucket_size.size());
-		vector<int> bucket_back(bucket_size.size());
-		vector<bool> used(v.size(), false);
-		
-		//initialize
-		{
-			int sum = 0;
-			for(int i=0; i<bucket_size.size(); i++){
-				bucket[i] = ret.begin() + sum;
-				bucket_fixed[i] = fixed.begin() +sum;
-				bucket_front[i] = 0;
-				bucket_back[i]  = bucket_size[i] - 1;
-				sum += bucket_size[i];
-			}
-		}
-		
 		vector<int> LS(v.size());
 		LS.back() = S;
 		for(int i=v.size()-2; i>=0; i--){
@@ -113,95 +193,68 @@ public:
 			else 					LS[i] = LS[i+1];
 		}
 
-		
+		bucket_set my_bucket(v, bucket_size, LS);
+
 		vector<int> LMS;
 		for(int i=1; i<v.size(); i++){
 			if(LS[i] != S) continue;
 			if(LS[i-1] == L) LMS.push_back(i);
 		}
 		LMS.push_back(v.size()-1);
-		
-		
-		vector< pair<substring, int> > LMS_substring;
+
+		vector<int> LMS_substring_order(v.size(), -1);
+		vector<int> LMS_substring_end(v.size(), -1);
 		for(int i=0; i<LMS.size()-1; i++){
-			substring sub(LMS[i], LMS[i+1]-LMS[i]+1, v.begin()+LMS[i], LS.begin()+LMS[i]);
-			LMS_substring.push_back({sub, LMS_substring.size()});
+			LMS_substring_order[LMS[i]] = i;
+			LMS_substring_end[LMS[i]] = LMS[i+1];
 		}
 
-		if(LMS_substring.size() > 0){
-			vector< pair<substring, int>> LMS_substring_old = LMS_substring;
+		if(LMS.size() > 1){
+			bucket_set LMS_bucket(v, bucket_size, LS);
+			LMS_bucket.put_initial_LMS(LMS);
+			LMS_bucket.put();
 
-			sort(LMS_substring.begin(), LMS_substring.end());
-
-			vector<int> LMS_order(LMS_substring.size());
+			vector<int> LMS_order = LMS_bucket.get_LMS_substring_order(LMS);
+			vector<int> LMS_order_cnt(LMS_order.size());
 
 			int cnt = 0;
-			LMS_order[ LMS_substring[0].second ] = cnt;
+			LMS_order_cnt[0] = 0;
 			cnt++;
-			for(int i=1; i<LMS_substring.size(); i++){
-				if(LMS_substring[i].first == LMS_substring[i-1].first){
-					LMS_order[ LMS_substring[i].second ] = cnt-1;
-				}else{
-					LMS_order[ LMS_substring[i].second ] = cnt;
-					cnt++;
-				}
+			size_t last_hash = get_hash(v.data() + LMS_order[0], LMS_substring_end[LMS_order[0]] - LMS_order[0]+1);
+
+			for(int i=1; i<LMS_order.size(); i++, cnt++){
+				//substring a(LMS_order[i], LMS_substring_end[LMS_order[i]] - LMS_order[i]+1, v.begin()+LMS_order[i], LS.begin()+LMS_order[i]);
+				//substring b(LMS_order[i-1], LMS_substring_end[LMS_order[i-1]] - LMS_order[i-1]+1, v.begin()+LMS_order[i-1], LS.begin()+LMS_order[i-1]);
+				size_t my_hash = get_hash(v.data() + LMS_order[i], LMS_substring_end[LMS_order[i]] - LMS_order[i]+1);
+				if( my_hash == last_hash ) cnt--;
+				last_hash = my_hash;
+				LMS_order_cnt[i] = cnt;
 			}
 
-			if(cnt != LMS_substring.size()){
+			vector<int> tmp(LMS_order.size());
+			for(int i=0; i<LMS_order.size(); i++){
+				tmp[LMS_substring_order[LMS_order[i]]] = LMS_order_cnt[i];
+			}
+			swap(tmp, LMS_order);
+
+
+			if(cnt != LMS_order.size()){
 				vector<int> new_order = rec(LMS_order);
 				LMS_order = vector<int>(new_order.begin()+1, new_order.end());
-				for(int i=0; i<LMS_substring.size(); i++){
-					LMS_substring[i].first = LMS_substring_old[LMS_order[i]].first;
-				}
 			}
 
-			for(int i=LMS_substring.size()-1; i>=0; i--){
-				int c = v[LMS_substring[i].first.pos];
-				bucket[c][bucket_back[c]] = LMS_substring[i].first.pos;
-				bucket_back[c]--;
+			tmp = LMS;
+			for(int i=0; i<LMS.size()-1; i++){
+				tmp[i] = LMS[ LMS_order[i] ];
 			}
+			swap(tmp, LMS);
+
+			my_bucket.put_ordered_LMS(LMS);
 		}
 
-
-		for(int i=0; i<bucket_size.size(); i++){
-			for(int j=0; j<bucket_size[i]; j++){
-				if( bucket[i][j] - 1 < 0 ) continue;
-				if( LS[ bucket[i][j]-1 ] == L ){
-					if(used[bucket[i][j]-1]) continue;
-					used[ bucket[i][j]-1 ] = true;
-					
-					int c = v[ bucket[i][j]-1 ];
-					bucket[c][ bucket_front[c] ] = bucket[i][j]-1;
-					bucket_fixed[c][ bucket_front[c] ] = true;
-					bucket_front[c]++;
-				}
-			}
-			bucket_back[i] = bucket_size[i] - 1;
-		}
-		for(int i=0; i<v.size(); i++){
-			if(fixed[i] == false){
-				ret[i] = -1;
-			}
-		}
-		
-		for(int i=bucket_size.size()-1; i>=0; i--){
-			for(int j=bucket_size[i]-1; j>=0; j--){
-				if( bucket[i][j] - 1 < 0 ) continue;
-				if( LS[ bucket[i][j]-1 ] == S ){
-					if(used[bucket[i][j]-1]) continue;
-					used[ bucket[i][j]-1 ] = true;
-					
-					int c = v[ bucket[i][j]-1 ];
-					bucket[c][ bucket_back[c] ] = bucket[i][j]-1;
-					bucket_fixed[c][ bucket_back[c] ] = true;
-					bucket_back[c]--;
-				}
-			}
-		}
-		
-		ret[0] = ret.size()-1;
-	
-		return ret;
+		my_bucket.put();
+			
+		return my_bucket.get_result();
 	}
 	
 	vector<int> rec(string &s){
@@ -248,7 +301,7 @@ int main(){
 	auto start = clock();
 	SA_IS sa(s);
 	cout << (clock() - start) << endl;
-	//sa.dbg_print();
+	sa.dbg_print();
 	
 	return 0;
 }

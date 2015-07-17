@@ -14,7 +14,7 @@ class LCA{
 	vector<vector<int> > p;
 
 	
-	int log_n;
+	int size;
 	
 	//initialization of depths and parents
 	void init(vector<vector<int> > &g, int pos, int last, int v){
@@ -35,12 +35,17 @@ public:
 		int n = g.size();
 		root = r;
 		d = vector<int>(n);
-		log_n = (log(n)/log(2) + 1);
-		p = vector<vector<int> >(log_n, vector<int>(n));
+
+		size = 1;
+		while((1<<size) <= n){
+			size++;
+		}
+		
+		p = vector<vector<int> >(size, vector<int>(n));
 		
 		init(g, root,-1,0);
 		
-		for(int k=0; k+1 < log_n; k++){
+		for(int k=0; k+1 < size; k++){
 			for(int v=0; v<n; v++){
 				if(p[k][v] < 0) p[k+1][v] = -1;
 				else p[k+1][v] = p[k][p[k][v]];
@@ -52,13 +57,16 @@ public:
 		int n = g.size();
 		root = 0;
 		d = vector<int>(n);
-		log_n = (log(n)/log(2) + 1);
-		p = vector<vector<int> >(log_n, vector<int>(n));
+		size = 1;
+		while((1<<size) <= n){
+			size++;
+		}
+		p = vector<vector<int> >(size, vector<int>(n));
 
 		//initialize as root = 0
 		init(g, root,-1,0);
 		
-		for(int k=0; k+1 < log_n; k++){
+		for(int k=0; k+1 < size; k++){
 			for(int v=0; v<n; v++){
 				if(p[k][v] < 0) p[k+1][v] = -1;
 				else p[k+1][v] = p[k][p[k][v]];
@@ -69,14 +77,14 @@ public:
 	//return the node number of lowest common ancestor between u and v
 	int get_lca(int u, int v){
 		if(d[u] > d[v]) swap(u,v);
-		for(int k=0; k<log_n; k++){
+		for(int k=0; k<size; k++){
 			if( (d[v] - d[u]) >> k & 1){
 				v = p[k][v];
 			}
 		}
 		if(u==v) return u;
 
-		for(int k=log_n-1; k>=0; k--){
+		for(int k=size-1; k>=0; k--){
 			if(p[k][u] != p[k][v]) {
 				u = p[k][u];
 				v = p[k][v];
