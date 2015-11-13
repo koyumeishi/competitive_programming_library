@@ -7,17 +7,74 @@
 
 using namespace std;
 
-#define MOD 1000000007
 
+// nCk mod p, O(1)
+// precomputation O(size)
+class combination_mod{
+	const long long mod;
+	const long long size;
+	
+	vector<long long> fact;	//n!
+	vector<long long> fact_inv;	// (n!)^-1
+
+	void make_fact(){
+		fact[0] = 1;
+		for(long long i=1; i<size; i++){
+			fact[i] = fact[i-1]*i % mod;
+		}
+	}
+
+	void make_fact_inv(){
+		fact_inv[0] = fact_inv[1] = 1;
+		for(long long i=2; i<size; i++){
+			fact_inv[i] = fact_inv[mod%i] * (mod - mod/i) % mod;	// x ^ -1
+		}
+		for(int i=2; i<size; i++){
+			fact_inv[i] = fact_inv[i-1] * fact_inv[i] % mod;	// x! ^ -1
+		}
+	}
+
+public:
+	combination_mod(long long mod_, long long size_ = 2000000) : mod(mod_), size(size_+1){
+		fact.resize(size);
+		fact_inv.resize(size);
+		make_fact();
+		make_fact_inv();
+	}
+
+	//nCk mod p O(1)
+	long long comb(long long n, long long k){
+		if(k==0 || n==k) return 1;
+		long long ret = fact[n] * fact_inv[k] % mod * fact_inv[n-k] % mod;
+		return ret;
+	}
+};
+
+
+///////////////////////////////////////////////////////////////////////////
+// old ver
 //p is mod
 
 //n! mod p table
 long long fact[400000+1];
 
-void make_fact(long long p){
+
+void make_fact(long long mod){
 	fact[0] = 1;
-	for(int i=1; i<=400000; i++){
-		fact[i] = ((long long)fact[i-1]*i%p)%p;
+	for(long long i=1; i<=400000; i++){
+		fact[i] = ((long long)fact[i-1]*i)%mod;
+	}
+}
+
+long long fact_inv[400000+1];
+
+void make_fact_inv(long long mod){
+	fact_inv[0] = fact_inv[1] = 1;
+	for(long long i=2; i<=400000; i++){
+		fact_inv[i] = fact_inv[mod%i] * (mod - mod/i) % mod;
+	}
+	for(int i=2; i<=400000; i++){
+		fact_inv[i] = fact_inv[i-1] * fact_inv[i] % mod;
 	}
 }
 
@@ -50,7 +107,7 @@ long long mod_fact(long long n, long long p, long long &e){
 	return res * fact[n%p]%p;
 }
 
-//nCk mod p
+//nCk mod p O(log n)
 long long mod_comb(long long n, long long k, long long p){
 	if(n<0 || k<0 || n<k) return 0;
 	long long e1,e2,e3;
@@ -60,6 +117,13 @@ long long mod_comb(long long n, long long k, long long p){
 
 	if(e1 > e2+e3) return 0;
 	return a1 * mod_inverse(a2*a3 %p, p) %p;
+}
+
+//nCk mod p O(1)
+long long mod_comb_(long long n, long long k, long long p){
+	if(k==0 || n==k) return 1;
+	long long ret = fact[n] * fact_inv[k] % p * fact_inv[n-k] % p;
+	return ret;
 }
 
 //usage

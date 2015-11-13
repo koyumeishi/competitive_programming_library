@@ -1,6 +1,6 @@
 // X = a*Y + b
 // X is big integer > 2^64-1
-string rem(string X, long long Y){
+long long rem(string X, long long Y){
 	long long b = 0;
 
 	for(int i=0; i<X.size(); i++){

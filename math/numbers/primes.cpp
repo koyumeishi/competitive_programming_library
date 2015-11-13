@@ -39,3 +39,19 @@ vector<pair<long long, long long> > prime_factorization(long long N){
 	}
 	return ret;
 }
+
+vector<long long> divisors(long long N){
+	vector<long long> ret;
+	ret.push_back(1);
+	ret.push_back(N);
+
+	for(long long i=2; i*i<=N; i++){
+		if(n%i==0){
+			ret.push_back(i);
+			if(i*i != N) ret.push_back(N/i);
+		}
+	}
+
+	//sort(ret.begin(), ret.end());
+	return ret;
+}

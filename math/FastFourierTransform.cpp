@@ -136,8 +136,15 @@ public:
 //test
 int main(){
 
-	vector<double> A = {1,2,3,4,0,0,0,0};
-	vector<double> B = {1,10,100};
+	//vector<double> A = {1,2,3,4,0,0,0,0};
+	//vector<double> B = {1,10,100};
+
+	vector<double> A = {6,4,5,1,3,2,6,4,5,1,3,2};
+	vector<double> B = {1,1,1};
+	int k=1;
+	while(A.size() >= k) k<<=1;
+	A.resize(k,0);
+
 
 	auto print = [&](vector<complex<double>> A){
 		for(int i=0; i<A.size(); i++){

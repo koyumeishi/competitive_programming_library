@@ -40,7 +40,7 @@ public:
 	}
 
 	int get_longest_palindrome(){
-		return (int)*max_element(radius.begin(), radius.end());
+		return -1+(int)*max_element(radius.begin(), radius.end());
 	}
 
 	int count_palindromes(){
@@ -64,6 +64,16 @@ public:
 			tmp[i&1] %= MOD;
 			ret += tmp[i&1] * i;
 			ret %= MOD;
+		}
+		return ret;
+	}
+
+
+	long long number_of_palindromes(){
+		long long ret = 0;
+		for(int i=0; i<n; i++){
+			//cerr << radius[i] << endl;
+			ret += (radius[i])/2LL;
 		}
 		return ret;
 	}

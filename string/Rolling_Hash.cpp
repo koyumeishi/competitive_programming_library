@@ -50,6 +50,47 @@ public:
 	}
 };
 
+//複数のstringを同じmodで。
+class Rolling_Hash{
+public:
+	int N;
+	vector<int> p_pow;
+	const int P;
+	const int MOD;
+
+	vector<vector<int>> hash;
+
+	Rolling_Hash(const int n) : 
+		P(vector<int>{10009, 10007}[0/*rand()%2*/]),
+		MOD(vector<int>{1000000007, 1000000009}[0/*rand()%2*/]),
+		N(n),
+		p_pow(n+1)
+	{
+		p_pow[0] = 1;
+		for(int i=1; i<=N; i++){
+			p_pow[i] = (1LL * p_pow[i-1] * P) % MOD;
+		}
+	}
+
+	// [l,r)
+	long long get_hash(int at, int l, int r){
+		if(r>=hash[at].size()) return -at;
+		int len = r-l;
+		return (hash[at][r] - (1LL * hash[at][l]* p_pow[len])%MOD + MOD) % MOD;
+	}
+
+	void insert(const string& s){
+		//hash[i] = [0,i)
+		hash.push_back({});
+		hash.back().resize(s.size()+1);
+		int at = hash.size() - 1;
+		for(int i=0; i<s.size(); i++){
+			hash[at][i+1] = (1LL * hash[at][i] * P + s[i])%MOD;
+		}
+	}
+
+};
+
 #include <iostream>
 int main(){
 	string s;
